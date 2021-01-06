@@ -1,6 +1,13 @@
 import configparser as conf
 import pymysql
 
+def baseConfig():
+    configParser = conf.RawConfigParser()
+    configFilePath = r'/etc/skatetrax/settings.conf'
+    configParser.read(configFilePath)
+    appConfig = configParser.get('appKey', 'secret')
+    return appConfig
+
 def newSkaterStart(sql):
    configParser = conf.RawConfigParser()
    configFilePath = r'/etc/skatetrax/settings.conf'
@@ -37,7 +44,7 @@ def newSkaterBulk(sql,newSkater):
    con.close()
    return tables
 
-def createUser():
+def createUser(userJSON):
     print('connecting ...')
 
     # Get the MAX ID, have SQL add 1 to it, use it for the uSkaterUUID in all other tables
@@ -50,10 +57,6 @@ def createUser():
     # Populates the uSkaterConfig table with a new row, where we begin.
     creStep1 = "INSERT INTO uSkaterConfig (uSkaterUUID, uSkaterFname, uSkaterLname, uSkaterUFSAid, uSkateComboIce, uSkateComboOff, uSkaterCity, uSkaterState, uSkaterMaintPref, uSkaterType, activeCoach) VALUES (%s, 'fName', 'lName', 1, 1, 2, 1, 1, 1, 1, 1);"
 
-    # Update the uSkaterUUID field with the last ID, for cross referencing
-    creStep2 = "UPDATE uSkaterConfig set uSkaterUUID = %s WHERE id = %s"
-
-    # Creates a tuple for the one statement that needs that var twice
     dumb_tuple = (LII,LII)
 
     # Create a set of boots for on and off ice for the new user's ID
@@ -79,8 +82,6 @@ def createUser():
 
     newSkaterBulk(creStep1, LII)
     print('step 1... done')
-    newSkaterBulk(creStep2, dumb_tuple)
-    print('step 2... done')
     newSkaterBulk(creStep3, LII)
     print('step 3... done')
     newSkaterBulk(creStep4, LII)
@@ -99,26 +100,7 @@ def createUser():
     print('step 10... done')
     newSkaterBulk(creStep11, LII)
     print('step 11... done')
+
     print('complete! Check User ID', LII)
 
     return
-
-createUser()
-
-### Current Example Output ###
-#  $ python3 logic_newuser.py
-#  connecting ...
-#  step 1... done
-#  step 2... done
-#  /usr/lib/python3.6/site-packages/pymysql/cursors.py:329: Warning: (1366, "Incorrect integer value: 'Select last_insert_id() as lii;' for column 'uSkaterUUID' at row 1")
-#    self._do_get_result()
-#  step 3... done
-#  step 4... done
-#  step 5... done
-#  step 6... done
-#  step 7... done
-#  step 8... done
-#  step 9... done
-#  step 10... done
-#  step 11... done
-#  complete!
